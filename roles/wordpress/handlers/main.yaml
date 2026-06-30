@@ -1,0 +1,6 @@
+---
+- name: Recharger Apache
+  service:
+    name: apache2
+    state: reloaded
+  when: not ansible_check_mode

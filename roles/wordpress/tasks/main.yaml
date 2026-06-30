@@ -1,0 +1,119 @@
+---
+- name: WordPress - Mise à jour du cache apt
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: WordPress - Installation d'Apache, PHP et dépendances
+  apt:
+    name: "{{ wp_packages }}"
+    state: present
+  when: not ansible_check_mode
+  
+- name: WordPress - Démarrage et activation du service Apache2
+  service:
+    name: apache2
+    state: started
+    enabled: yes
+  when: not ansible_check_mode
+  
+- name: WordPress - Test de connectivité réseau vers la base de données (port 3306)
+  wait_for:
+    host: "{{ wp_db_host }}"
+    port: 3306
+    timeout: 15
+    state: started
+  when: not ansible_check_mode
+
+- name: WordPress - Suppression de la page par défaut Apache
+  file:
+    path: /var/www/html/index.html
+    state: absent
+  ignore_errors: yes
+  when: not ansible_check_mode
+
+- name: WordPress - Vérification de la présence d'une installation existante
+  stat:
+    path: "{{ wp_install_dir }}/wp-config.php"
+  register: wp_already_installed
+
+- name: WordPress - Téléchargement et extraction de l'archive WordPress
+  unarchive:
+    src: "https://wordpress.org/{{ wp_version }}.tar.gz"
+    dest: /tmp
+    remote_src: yes
+  when: not wp_already_installed.stat.exists
+
+- name: WordPress - Copie des fichiers extraits vers le répertoire d'installation
+  copy:
+    src: /tmp/wordpress/
+    dest: "{{ wp_install_dir }}/"
+    remote_src: yes
+  when: not wp_already_installed.stat.exists and not ansible_check_mode
+
+- name: WordPress - Récupération de sels aléatoires pour wp-config.php
+  delegate_to: localhost
+  become: false
+  uri:
+    url: https://api.wordpress.org/secret-key/1.1/salt/
+    return_content: yes
+  register: wp_salt_array
+  when: not wp_already_installed.stat.exists and not ansible_check_mode
+
+- name: WordPress - Définition du fact wp_salt
+  set_fact:
+    wp_salt: "{{ wp_salt_array.content }}"
+  when: not wp_already_installed.stat.exists and not ansible_check_mode
+
+- name: WordPress - Génération du fichier wp-config.php
+  template:
+    src: wp-config.php.j2
+    dest: "{{ wp_install_dir }}/wp-config.php"
+    owner: www-data
+    group: www-data
+    mode: "0640"
+  when: not wp_already_installed.stat.exists and not ansible_check_mode
+
+- name: WordPress - Changement de propriétaire du répertoire d'installation
+  file:
+    path: "{{ wp_install_dir }}"
+    owner: www-data
+    group: www-data
+    recurse: yes
+    state: directory
+  when: not ansible_check_mode
+
+- name: WordPress - Déploiement du virtualhost Apache
+  template:
+    src: wordpress.conf.j2
+    dest: /etc/apache2/sites-available/wordpress.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Recharger Apache
+  when: not ansible_check_mode
+
+- name: WordPress - Activation du virtualhost wordpress
+  command: a2ensite wordpress.conf
+  args:
+    creates: /etc/apache2/sites-enabled/wordpress.conf
+  notify: Recharger Apache
+
+- name: WordPress - Activation du module rewrite
+  command: a2enmod rewrite
+  args:
+    creates: /etc/apache2/mods-enabled/rewrite.load
+  notify: Recharger Apache
+
+- name: WordPress - Désactivation du site Apache par défaut
+  command: a2dissite 000-default.conf
+  args:
+    removes: /etc/apache2/sites-enabled/000-default.conf
+  notify: Recharger Apache
+
+- name: WordPress - Ouverture du port 80 dans le pare-feu UFW (si actif)
+  community.general.ufw:
+    rule: allow
+    port: "80"
+    proto: tcp
+  ignore_errors: yes
