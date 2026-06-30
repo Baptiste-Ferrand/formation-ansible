@@ -1,1 +1,3 @@
 formation.pem
+*.Identifier
+.vault_pass
