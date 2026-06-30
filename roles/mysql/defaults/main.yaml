@@ -1,0 +1,6 @@
+---
+mysql_packages:
+  - mysql-server
+  - python3-pymysql
+
+mysql_bind_address: "0.0.0.0"

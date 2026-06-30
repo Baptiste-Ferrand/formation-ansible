@@ -1,0 +1,94 @@
+---
+- name: MySQL - Mise à jour du cache apt
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+  check_mode: false
+
+- name: MySQL - Installation des paquets nécessaires
+  apt:
+    name: "{{ mysql_packages }}"
+    state: present
+
+- name: MySQL - Démarrage et activation du service
+  service:
+    name: mysql
+    state: started
+    enabled: yes
+
+- name: MySQL - Configuration du bind-address pour accepter les connexions distantes
+  template:
+    src: mysqld_bind.cnf.j2
+    dest: /etc/mysql/mysql.conf.d/99-bind-address.cnf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Redémarrer MySQL
+
+- name: MySQL - Forcer le redémarrage immédiat pour appliquer bind-address
+  meta: flush_handlers
+
+- name: MySQL - Définition du mot de passe root via shell (contournement auth_socket MySQL 8)
+  shell: |
+    mysql -u root --connect-expired-password -e "
+    ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '{{ mysql_root_password }}';
+    FLUSH PRIVILEGES;"
+  args:
+    executable: /bin/bash
+  no_log: true
+
+- name: MySQL - Création du fichier /root/.my.cnf pour les tâches suivantes
+  copy:
+    dest: /root/.my.cnf
+    content: |
+      [client]
+      user=root
+      password={{ mysql_root_password }}
+      host=127.0.0.1
+    owner: root
+    group: root
+    mode: "0600"
+  no_log: true
+
+- name: MySQL - Création de l'utilisateur root accessible depuis le serveur web
+  mysql_user:
+    name: root
+    host: "{{ hostvars[groups['serveurweb'][0]]['ansible_host'] }}"
+    password: "{{ mysql_root_password }}"
+    priv: "*.*:ALL,GRANT"
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+    login_host: 127.0.0.1
+    state: present
+
+- name: MySQL - Création de la base de données WordPress
+  mysql_db:
+    name: "{{ wp_db_name }}"
+    state: present
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+    login_host: 127.0.0.1
+
+- name: MySQL - Création de l'utilisateur applicatif WordPress
+  mysql_user:
+    name: "{{ wp_db_user }}"
+    password: "{{ wp_db_password }}"
+    host: "{{ hostvars[groups['serveurweb'][0]]['ansible_host'] }}"
+    priv: "{{ wp_db_name }}.*:ALL"
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+    login_host: 127.0.0.1
+    state: present
+
+- name: MySQL - Suppression du fichier /root/.my.cnf après configuration
+  file:
+    path: /root/.my.cnf
+    state: absent
+
+- name: MySQL - Ouverture du port 3306 dans le pare-feu UFW (si actif)
+  community.general.ufw:
+    rule: allow
+    port: "3306"
+    proto: tcp
+    src: "{{ hostvars[groups['serveurweb'][0]]['ansible_host'] }}"
+  ignore_errors: yes
