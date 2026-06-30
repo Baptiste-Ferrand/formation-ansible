@@ -1,0 +1,16 @@
+---
+- name: Déploiement de la base de données MySQL
+  hosts: serveurdatabase
+  become: yes
+  roles:
+    - mysql
+  tags:
+    - db
+
+- name: Déploiement du serveur web WordPress
+  hosts: serveurweb
+  become: yes
+  roles:
+    - wordpress
+  tags:
+    - web

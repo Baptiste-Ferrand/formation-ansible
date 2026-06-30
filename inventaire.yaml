@@ -1,0 +1,11 @@
+all:
+  children:
+    serveurweb:
+      hosts:
+        cible1.liora.fr:
+          ansible_host: 51.44.208.161
+
+    serveurdatabase:
+      hosts:
+        cible2.liora.fr:
+          ansible_host: 35.180.73.205
