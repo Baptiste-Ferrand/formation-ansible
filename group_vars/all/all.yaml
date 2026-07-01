@@ -3,15 +3,12 @@ ansible_user: liora
 ansible_ssh_private_key_file: ./formation.pem
 ansible_python_interpreter: /usr/bin/python3
 
-# Nom de la base et de l'utilisateur applicatif WordPress
 wp_db_name: wordpress_db
 wp_db_user: wp_user
 
-# IMPORTANT: utiliser l'IP privée de l'hôte DB (définie dans l'inventaire)
 wp_db_host: "{{ hostvars[groups['serveurdatabase'][0]]['private_ip'] }}"
 wp_db_charset: utf8
 
-# Config WordPress
 wp_version: latest
 wp_install_dir: /var/www/html
 wp_sitename: liora-shop.local
