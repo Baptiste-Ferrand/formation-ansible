@@ -1,0 +1,314 @@
+=== TP Ansible - Déploiement WordPress + MySQL ===
+Date d'exécution : 2026-07-01 09:19:17 UTC
+
+Playbook   : playbook.yaml
+Inventaire : inventaire.yaml
+
+>>> ansible-playbook -i inventaire.yaml playbook.yaml --syntax-check
+
+playbook: playbook.yaml
+
+>>> ansible -i inventaire.yaml all -m ping
+cible2.liora.fr | SUCCESS => {
+    "changed": false,
+    "ping": "pong"
+}
+cible1.liora.fr | SUCCESS => {
+    "changed": false,
+    "ping": "pong"
+}
+
+>>> ansible-inventory -i inventaire.yaml --graph
+@all:
+  |--@ungrouped:
+  |--@serveurweb:
+  |  |--cible1.liora.fr
+  |--@serveurdatabase:
+  |  |--cible2.liora.fr
+
+>>> ansible-playbook -i inventaire.yaml playbook.yaml --check
+
+PLAY [Déploiement de la base de données MySQL] *********************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [cible2.liora.fr]
+
+TASK [mysql : MySql - Installation de mysql-server (Ubuntu)] *******************
+ok: [cible2.liora.fr]
+
+TASK [mysql : MySql - Installation de mariadb-server (Debian)] *****************
+skipping: [cible2.liora.fr]
+
+TASK [mysql : MySql - Installation des dépendances Python MySQL] ***************
+ok: [cible2.liora.fr]
+
+TASK [mysql : MySql - Démarrage du service] ************************************
+ok: [cible2.liora.fr]
+
+TASK [mysql : MySql - Autoriser les connexions distantes (bind-address)] *******
+ok: [cible2.liora.fr]
+
+TASK [mysql : MySql - Creation de la base de données] **************************
+ok: [cible2.liora.fr]
+
+TASK [mysql : MySql - Création de l'utilisateur pour la base de données (serveur web distant)] ***
+ok: [cible2.liora.fr]
+
+PLAY [Déploiement du serveur web WordPress] ************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Mise à jour du cache apt] ************************
+ok: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Installation d'Apache, PHP et dépendances] *******
+skipping: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Démarrage et activation du service Apache2] ******
+skipping: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Test de connectivité réseau vers la base de données (port 3306)] ***
+skipping: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Suppression de la page par défaut Apache] ********
+skipping: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Vérification de la présence d'une installation existante] ***
+ok: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Téléchargement et extraction de l'archive WordPress] ***
+skipping: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Copie des fichiers extraits vers le répertoire d'installation] ***
+skipping: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Récupération de sels aléatoires pour wp-config.php] ***
+skipping: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Définition du fact wp_salt] **********************
+skipping: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Génération du fichier wp-config.php] *************
+skipping: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Changement de propriétaire du répertoire d'installation] ***
+skipping: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Déploiement du virtualhost Apache] ***************
+skipping: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Activation du virtualhost wordpress] *************
+ok: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Activation du module rewrite] ********************
+ok: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Désactivation du site Apache par défaut] *********
+ok: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Ouverture du port 80 dans le pare-feu UFW (si actif)] ***
+ok: [cible1.liora.fr]
+
+PLAY RECAP *********************************************************************
+cible1.liora.fr            : ok=7    changed=0    unreachable=0    failed=0    skipped=11   rescued=0    ignored=0   
+cible2.liora.fr            : ok=7    changed=0    unreachable=0    failed=0    skipped=1    rescued=0    ignored=0   
+
+
+>>> ansible-playbook -i inventaire.yaml playbook.yaml
+
+PLAY [Déploiement de la base de données MySQL] *********************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [cible2.liora.fr]
+
+TASK [mysql : MySql - Installation de mysql-server (Ubuntu)] *******************
+ok: [cible2.liora.fr]
+
+TASK [mysql : MySql - Installation de mariadb-server (Debian)] *****************
+skipping: [cible2.liora.fr]
+
+TASK [mysql : MySql - Installation des dépendances Python MySQL] ***************
+ok: [cible2.liora.fr]
+
+TASK [mysql : MySql - Démarrage du service] ************************************
+ok: [cible2.liora.fr]
+
+TASK [mysql : MySql - Autoriser les connexions distantes (bind-address)] *******
+ok: [cible2.liora.fr]
+
+TASK [mysql : MySql - Creation de la base de données] **************************
+ok: [cible2.liora.fr]
+
+TASK [mysql : MySql - Création de l'utilisateur pour la base de données (serveur web distant)] ***
+ok: [cible2.liora.fr]
+
+PLAY [Déploiement du serveur web WordPress] ************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Mise à jour du cache apt] ************************
+ok: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Installation d'Apache, PHP et dépendances] *******
+ok: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Démarrage et activation du service Apache2] ******
+ok: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Test de connectivité réseau vers la base de données (port 3306)] ***
+ok: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Suppression de la page par défaut Apache] ********
+ok: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Vérification de la présence d'une installation existante] ***
+ok: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Téléchargement et extraction de l'archive WordPress] ***
+skipping: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Copie des fichiers extraits vers le répertoire d'installation] ***
+skipping: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Récupération de sels aléatoires pour wp-config.php] ***
+skipping: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Définition du fact wp_salt] **********************
+skipping: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Génération du fichier wp-config.php] *************
+skipping: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Changement de propriétaire du répertoire d'installation] ***
+ok: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Déploiement du virtualhost Apache] ***************
+ok: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Activation du virtualhost wordpress] *************
+ok: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Activation du module rewrite] ********************
+ok: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Désactivation du site Apache par défaut] *********
+ok: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Ouverture du port 80 dans le pare-feu UFW (si actif)] ***
+ok: [cible1.liora.fr]
+
+PLAY RECAP *********************************************************************
+cible1.liora.fr            : ok=13   changed=0    unreachable=0    failed=0    skipped=5    rescued=0    ignored=0   
+cible2.liora.fr            : ok=7    changed=0    unreachable=0    failed=0    skipped=1    rescued=0    ignored=0   
+
+
+>>> ansible-playbook -i inventaire.yaml playbook.yaml
+
+PLAY [Déploiement de la base de données MySQL] *********************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [cible2.liora.fr]
+
+TASK [mysql : MySql - Installation de mysql-server (Ubuntu)] *******************
+ok: [cible2.liora.fr]
+
+TASK [mysql : MySql - Installation de mariadb-server (Debian)] *****************
+skipping: [cible2.liora.fr]
+
+TASK [mysql : MySql - Installation des dépendances Python MySQL] ***************
+ok: [cible2.liora.fr]
+
+TASK [mysql : MySql - Démarrage du service] ************************************
+ok: [cible2.liora.fr]
+
+TASK [mysql : MySql - Autoriser les connexions distantes (bind-address)] *******
+ok: [cible2.liora.fr]
+
+TASK [mysql : MySql - Creation de la base de données] **************************
+ok: [cible2.liora.fr]
+
+TASK [mysql : MySql - Création de l'utilisateur pour la base de données (serveur web distant)] ***
+ok: [cible2.liora.fr]
+
+PLAY [Déploiement du serveur web WordPress] ************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Mise à jour du cache apt] ************************
+ok: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Installation d'Apache, PHP et dépendances] *******
+ok: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Démarrage et activation du service Apache2] ******
+ok: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Test de connectivité réseau vers la base de données (port 3306)] ***
+ok: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Suppression de la page par défaut Apache] ********
+ok: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Vérification de la présence d'une installation existante] ***
+ok: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Téléchargement et extraction de l'archive WordPress] ***
+skipping: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Copie des fichiers extraits vers le répertoire d'installation] ***
+skipping: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Récupération de sels aléatoires pour wp-config.php] ***
+skipping: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Définition du fact wp_salt] **********************
+skipping: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Génération du fichier wp-config.php] *************
+skipping: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Changement de propriétaire du répertoire d'installation] ***
+ok: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Déploiement du virtualhost Apache] ***************
+ok: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Activation du virtualhost wordpress] *************
+ok: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Activation du module rewrite] ********************
+ok: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Désactivation du site Apache par défaut] *********
+ok: [cible1.liora.fr]
+
+TASK [wordpress : WordPress - Ouverture du port 80 dans le pare-feu UFW (si actif)] ***
+ok: [cible1.liora.fr]
+
+PLAY RECAP *********************************************************************
+cible1.liora.fr            : ok=13   changed=0    unreachable=0    failed=0    skipped=5    rescued=0    ignored=0   
+cible2.liora.fr            : ok=7    changed=0    unreachable=0    failed=0    skipped=1    rescued=0    ignored=0   
+
+
+>>> ansible -i inventaire.yaml cible1.liora.fr -m shell -a 'nc -zv 172.31.30.130 3306'
+cible1.liora.fr | CHANGED | rc=0 >>
+Connection to 172.31.30.130 3306 port [tcp/mysql] succeeded!
+
+>>> curl -I --max-time 10 http://51.44.208.161
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+HTTP/1.1 302 Found
+Date: Wed, 01 Jul 2026 09:20:12 GMT
+Server: Apache/2.4.58 (Ubuntu)
+Expires: Wed, 11 Jan 1984 05:00:00 GMT
+Cache-Control: no-cache, must-revalidate, max-age=0, no-store, private
+X-Redirect-By: WordPress
+Location: http://51.44.208.161/wp-admin/install.php
+Content-Type: text/html; charset=UTF-8
+
+
+=== Fin des tests - logs enregistrés dans logs/execution.txt ===

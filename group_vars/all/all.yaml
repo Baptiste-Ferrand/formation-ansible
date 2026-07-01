@@ -6,7 +6,9 @@ ansible_python_interpreter: /usr/bin/python3
 # Nom de la base et de l'utilisateur applicatif WordPress
 wp_db_name: wordpress_db
 wp_db_user: wp_user
-wp_db_host: "{{ hostvars[groups['serveurdatabase'][0]]['ansible_host'] }}"
+
+# IMPORTANT: utiliser l'IP privée de l'hôte DB (définie dans l'inventaire)
+wp_db_host: "{{ hostvars[groups['serveurdatabase'][0]]['private_ip'] }}"
 wp_db_charset: utf8
 
 # Config WordPress

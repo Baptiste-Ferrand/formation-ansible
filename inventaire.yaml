@@ -4,8 +4,9 @@ all:
       hosts:
         cible1.liora.fr:
           ansible_host: 51.44.208.161
-
+          private_ip: 172.31.30.238
     serveurdatabase:
       hosts:
         cible2.liora.fr:
           ansible_host: 35.180.73.205
+          private_ip: 172.31.30.130
